@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>НМТ Історія України: Інтерактивний тренажер</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    body {
+      font-family: 'Montserrat', sans-serif;
+      background-color: #f4ecdc;
+      color: #23372b;
+    }
+    .custom-shadow {
+      box-shadow: 0 10px 25px -5px rgba(43, 69, 54, 0.1), 0 8px 10px -6px rgba(43, 69, 54, 0.1);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between p-4 sm:p-6 md:p-8">
+
+  <!-- Контейнер застосунку -->
+  <div class="max-w-3xl w-full mx-auto bg-white rounded-3xl border-2 border-[#2b4536] p-6 sm:p-8 custom-shadow transition-all">
+    
+    <!-- Шапка / Брендинг -->
+    <header class="flex flex-wrap items-center justify-between border-b border-[#e5dcce] pb-5 mb-6 gap-3">
+      <div class="flex items-center gap-2.5 bg-[#2b4536] text-white px-4 py-1.5 rounded-full shadow-sm">
+        <i class="fa-brands fa-instagram text-[#eab446]"></i>
+        <span class="text-sm font-extrabold tracking-wide">hist.viktoria</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="text-xs font-black uppercase text-[#943429] tracking-widest">Програма НМТ</span>
+        <span class="text-[#c4b69d]">•</span>
+        <span class="bg-[#f0e7d8] text-[#2b4536] text-xs font-bold px-2.5 py-1 rounded-lg">Теми 5–6</span>
+      </div>
+    </header>
+
+    <!-- Прогрес і статистика -->
+    <div class="flex items-center justify-between text-sm font-bold text-[#6d6153] mb-3">
+      <span id="question-counter">Запитання 1 з 5</span>
+      <span id="score-counter">Бали: 0</span>
+    </div>
+    <div class="w-full bg-[#eee5d5] rounded-full h-2.5 mb-6 overflow-hidden">
+      <div id="progress-bar" class="bg-[#df9f28] h-2.5 rounded-full transition-all duration-300" style="width: 20%"></div>
+    </div>
+
+    <!-- Область тесту -->
+    <main id="quiz-area">
+      <!-- Текст запитання -->
+      <div class="mb-6">
+        <span id="question-type" class="inline-block text-xs font-bold text-[#84611d] bg-[#fbf2dd] border border-[#f1deba] px-3 py-1 rounded-md mb-2">
+          Цитата з історичного джерела
+        </span>
+        <h2 id="question-text" class="text-lg sm:text-xl font-bold text-[#23372b] leading-relaxed">
+          Завантаження запитання...
+        </h2>
+      </div>
+
+      <!-- Варіанти відповідей -->
+      <div id="options-container" class="space-y-3 mb-6">
+        <!-- Кнопки варіантів генеруються через JS -->
+      </div>
+
+      <!-- Блок пояснення (спочатку прихований) -->
+      <div id="feedback-box" class="hidden p-4 rounded-2xl mb-6 border transition-all">
+        <div class="flex items-center gap-2 mb-1">
+          <i id="feedback-icon" class="fa-solid text-lg"></i>
+          <h4 id="feedback-title" class="font-extrabold text-sm uppercase tracking-wide"></h4>
+        </div>
+        <p id="feedback-text" class="text-sm leading-relaxed font-medium text-[#3b473e]"></p>
+      </div>
+
+      <!-- Кнопка «Наступне» -->
+      <div class="flex justify-end">
+        <button id="next-btn" class="hidden bg-[#2b4536] hover:bg-[#1d3126] text-white font-extrabold text-sm uppercase px-6 py-3 rounded-xl transition duration-200 flex items-center gap-2 shadow-md">
+          <span>Наступне запитання</span>
+          <i class="fa-solid fa-arrow-right"></i>
+        </button>
+      </div>
+    </main>
+
+    <!-- Фінальний екран результату (прихований) -->
+    <div id="result-screen" class="hidden text-center py-8">
+      <div class="w-20 h-20 bg-[#f4ecdc] text-[#2b4536] rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-[#df9f28] shadow-md">
+        <i class="fa-solid fa-award text-3xl text-[#df9f28]"></i>
+      </div>
+      <h3 class="text-2xl font-black text-[#23372b] uppercase mb-2">Тестування завершено!</h3>
+      <p id="final-score-text" class="text-base text-[#6d6153] font-semibold mb-6"></p>
+      <button id="restart-btn" class="bg-[#2b4536] hover:bg-[#1d3126] text-white font-black text-sm uppercase px-8 py-3.5 rounded-xl transition shadow-lg inline-flex items-center gap-2">
+        <i class="fa-solid fa-rotate-right"></i>
+        <span>Пройти ще раз</span>
+      </button>
+    </div>
+
+  </div>
+
+  <!-- Футер -->
+  <footer class="text-center text-xs font-semibold text-[#8b8072] mt-6">
+    Тренажер підготовки до НМТ з історії України • @hist.viktoria
+  </footer>
+
+  <script>
+    const questions = [
+      {
+        type: "Аналіз історичного джерела",
+        question: "«Якби якийсь вотчинний підданий або селянин пішов від котрогось боярина, не переходячи до іншого [боярина], і той, від якого піде, не шукав би того підданого або селянина десять років, — надалі йому до нього нема діла».\nЯкий процес відображає наведена норма Другого Литовського статуту (1566 р.)?",
+        options: [
+          "Остаточну ліквідацію магдебурзького права в містах",
+          "Початок масового покозачення селянського населення",
+          "Етап юридичного закріпачення селянства",
+          "Зрівняння прав міщан і шляхти"
+        ],
+        correct: 2,
+        explanation: "Встановлення 10-річного терміну розшуку селян-втікачів у Другому Литовському статуті (1566 р.) свідчить про послідовне закріпачення селян та обмеження їхнього права на вільний перехід."
+      },
+      {
+        type: "Люблінська унія 1569 р.",
+        question: "Що з переліченого залишилося окремим у Великому князівстві Литовському після укладення Люблінської унії?",
+        options: [
+          "Зовнішня політика та дипломатичні союзи",
+          "Монарх (великий князь литовський обирався окремо)",
+          "Власна скарбниця (казна), військо та Литовські статути",
+          "Вальний сейм і сенат держави"
+        ],
+        correct: 2,
+        explanation: "Згідно з умовами Люблінської унії, спільними були монарх, сейм, монета та зовнішня політика. Окремими для Польщі та Литви лишалися: уряд, законодавство (Литовські статути), військо та казна."
+      },
+      {
+        type: "Оцінка діячів та подій",
+        question: "М. Грушевський писав: «Прославлений пізніше як акт любові, братерства, пожертвування у дійсності цей сейм був ланцюгом насильства над чужими переконаннями...». Про який сейм і подію йдеться?",
+        options: [
+          "Кревську унію (1385 р.)",
+          "Люблінський сейм та унію (1569 р.)",
+          "Берестейський церковний собор (1596 р.)",
+          "З'їзд європейських монархів у Луцьку (1429 р.)"
+        ],
+        correct: 1,
+        explanation: "Ця цитата М. Грушевського характеризує саме Люблінський сейм 1569 року, під час якого польська шляхта домоглася інкорпорації українських воєводств до складу Корони Польської."
+      },
+      {
+        type: "Соціальна структура суспільства",
+        question: "Чим становище вищого православного духовенства в XVI ст. принципово відрізнялося від становища рядового (парафіяльного)?",
+        options: [
+          "Вищі ієрархи сплачували щорічний подушний податок державі",
+          "Вище духовенство засідало в сеймиках міщан і не володіло землею",
+          "Вищі ієрархи володіли великими маєтками й брали участь у державній раді",
+          "Рядове духовенство мало право вето на загальнодержавних сеймах"
+        ],
+        correct: 2,
+        explanation: "Вище духовенство (митрополити, єпископи, архімандрити) за багатством і маєтками наближалося до магнатів та брало участь у державній раді (панах-радах) і сеймах, тоді як рядове духовенство жило скромно працею і парафіяльними зборами."
+      },
+      {
+        type: "Литовські статути XVI ст.",
+        question: "Який Литовський статут юридично завершив процес покріпачення селянства на українських землях?",
+        options: [
+          "Перший Литовський статут («Старий») 1529 р.",
+          "Другий Литовський («Волинський») статут 1566 р.",
+          "Третій Литовський («Новий») статут 1588 р.",
+          "Судебник великого князя Казимира IV 1468 р."
+        ],
+        correct: 2,
+        explanation: "Третій Литовський статут 1588 року остаточно закріпачив селян, які прожили на землі феодала понад 10 років, і встановив 20-річний термін розшуку селян-утікачів."
+      }
+    ];
+
+    let currentQuestionIndex = 0;
+    let score = 0;
+    let answered = false;
+
+    const questionCounter = document.getElementById("question-counter");
+    const scoreCounter = document.getElementById("score-counter");
+    const progressBar = document.getElementById("progress-bar");
+    const questionType = document.getElementById("question-type");
+    const questionText = document.getElementById("question-text");
+    const optionsContainer = document.getElementById("options-container");
+    const feedbackBox = document.getElementById("feedback-box");
+    const feedbackTitle = document.getElementById("feedback-title");
+    const feedbackIcon = document.getElementById("feedback-icon");
+    const feedbackText = document.getElementById("feedback-text");
+    const nextBtn = document.getElementById("next-btn");
+    const quizArea = document.getElementById("quiz-area");
+    const resultScreen = document.getElementById("result-screen");
+    const finalScoreText = document.getElementById("final-score-text");
+    const restartBtn = document.getElementById("restart-btn");
+
+    function renderQuestion() {
+      answered = false;
+      const q = questions[currentQuestionIndex];
+      
+      questionCounter.textContent = `Запитання ${currentQuestionIndex + 1} з ${questions.length}`;
+      scoreCounter.textContent = `Бали: ${score}`;
+      progressBar.style.width = `${((currentQuestionIndex + 1) / questions.length) * 100}%`;
+      
+      questionType.textContent = q.type;
+      questionText.textContent = q.question;
+      
+      optionsContainer.innerHTML = "";
+      feedbackBox.className = "hidden p-4 rounded-2xl mb-6 border transition-all";
+      nextBtn.classList.add("hidden");
+
+      q.options.forEach((opt, idx) => {
+        const btn = document.createElement("button");
+        btn.className = "w-full text-left p-4 rounded-xl border-2 border-[#d9cebc] hover:border-[#2b4536] bg-[#faf6ef] hover:bg-white text-[#23372b] font-semibold text-sm transition-all duration-150 flex items-start gap-3";
+        btn.innerHTML = `<span class="inline-flex items-center justify-center w-6 h-6 rounded-md bg-[#e5dcce] text-[#2b4536] font-bold text-xs shrink-0">${['А', 'Б', 'В', 'Г'][idx]}</span><span>${opt}</span>`;
+        btn.onclick = () => selectOption(idx);
+        optionsContainer.appendChild(btn);
+      });
+    }
+
+    function selectOption(selectedIndex) {
+      if (answered) return;
+      answered = true;
+      
+      const q = questions[currentQuestionIndex];
+      const buttons = optionsContainer.querySelectorAll("button");
+      
+      buttons.forEach((btn, idx) => {
+        btn.disabled = true;
+        btn.classList.remove("hover:bg-white", "hover:border-[#2b4536]");
+        if (idx === q.correct) {
+          btn.classList.add("bg-[#e2f0e6]", "border-[#2b4536]", "text-[#1d3d28]");
+          btn.querySelector("span:first-child").className = "inline-flex items-center justify-center w-6 h-6 rounded-md bg-[#2b4536] text-white font-bold text-xs shrink-0";
+        } else if (idx === selectedIndex) {
+          btn.classList.add("bg-[#faede9]", "border-[#943429]", "text-[#943429]");
+          btn.querySelector("span:first-child").className = "inline-flex items-center justify-center w-6 h-6 rounded-md bg-[#943429] text-white font-bold text-xs shrink-0";
+        } else {
+          btn.classList.add("opacity-60");
+        }
+      });
+
+      feedbackBox.classList.remove("hidden");
+      if (selectedIndex === q.correct) {
+        score++;
+        scoreCounter.textContent = `Бали: ${score}`;
+        feedbackBox.classList.add("bg-[#eef7f0]", "border-[#b5d6be]");
+        feedbackTitle.textContent = "Правильно!";
+        feedbackTitle.className = "font-extrabold text-sm uppercase tracking-wide text-[#2b4536]";
+        feedbackIcon.className = "fa-solid fa-circle-check text-lg text-[#2b4536]";
+      } else {
+        feedbackBox.classList.add("bg-[#faf0ee]", "border-[#f2c2b8]");
+        feedbackTitle.textContent = "Неправильно!";
+        feedbackTitle.className = "font-extrabold text-sm uppercase tracking-wide text-[#943429]";
+        feedbackIcon.className = "fa-solid fa-circle-xmark text-lg text-[#943429]";
+      }
+
+      feedbackText.textContent = q.explanation;
+      nextBtn.classList.remove("hidden");
+    }
+
+    nextBtn.onclick = () => {
+      if (currentQuestionIndex < questions.length - 1) {
+        currentQuestionIndex++;
+        renderQuestion();
+      } else {
+        showResults();
+      }
+    };
+
+    function showResults() {
+      quizArea.classList.add("hidden");
+      resultScreen.classList.remove("hidden");
+      const percent = Math.round((score / questions.length) * 100);
+      finalScoreText.innerHTML = `Ви набрали <strong class="text-[#2b4536] text-xl">${score} з ${questions.length}</strong> правильних відповідей (${percent}%).<br>${percent >= 80 ? 'Чудовий результат! Матеріал засвоєно на високому рівні.' : 'Гарна спроба! Повторіть дати Литовських статутів та умови Люблінської унії.'}`;
+    }
+
+    restartBtn.onclick = () => {
+      score = 0;
+      currentQuestionIndex = 0;
+      resultScreen.classList.add("hidden");
+      quizArea.classList.remove("hidden");
+      renderQuestion();
+    };
+
+    renderQuestion();
+  </script>
+</body>
+</html>
